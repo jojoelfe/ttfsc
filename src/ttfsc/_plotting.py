@@ -1,13 +1,22 @@
+from typing import Optional
+
 import torch
 
 
 def plot_matplotlib(
-    fsc_values: torch.Tensor, resolution_angstroms: torch.Tensor, estimated_resolution_angstrom: float, fsc_threshold: float
+    fsc_values_unmasked: torch.Tensor,
+    fsc_values_masked: Optional[torch.Tensor],
+    resolution_angstroms: torch.Tensor,
+    estimated_resolution_angstrom: float,
+    fsc_threshold: float,
 ) -> None:
     from matplotlib import pyplot as plt
 
     plt.hlines(0, resolution_angstroms[1], resolution_angstroms[-2], "black")
-    plt.plot(resolution_angstroms, fsc_values, label="FSC (unmasked)")
+    plt.plot(resolution_angstroms, fsc_values_unmasked, label="FSC (unmasked)")
+    if fsc_values_masked is not None:
+        plt.plot(resolution_angstroms, fsc_values_masked, label="FSC (masked)")
+
     plt.xlabel("Resolution (Å)")
     plt.ylabel("Correlation")
     plt.xscale("log")
@@ -22,6 +31,7 @@ def plot_matplotlib(
 
 def plot_plottile(
     fsc_values: torch.Tensor,
+    fsc_values_masked: Optional[torch.Tensor],
     frequency_pixels: torch.Tensor,
     pixel_spacing_angstroms: float,
     estimated_resolution_frequency_pixel: float,
@@ -39,7 +49,9 @@ def plot_plottile(
         return f"{(1 / x) * pixel_spacing_angstroms:.2f}"
 
     fig.x_ticks_fkt = resolution_callback
-    fig.plot(frequency_pixels[1:].numpy(), fsc_values[1:].numpy(), lc="blue", label="FSC")
+    fig.plot(frequency_pixels[1:].numpy(), fsc_values[1:].numpy(), lc="blue", label="FSC (unmasked)")
+    if fsc_values_masked is not None:
+        fig.plot(frequency_pixels[1:].numpy(), fsc_values_masked[1:].numpy(), lc="green", label="FSC (masked)")
 
     fig.plot(
         [float(frequency_pixels[1].numpy()), estimated_resolution_frequency_pixel],
