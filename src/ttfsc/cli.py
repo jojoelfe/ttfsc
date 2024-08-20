@@ -14,8 +14,10 @@ def ttfsc_cli(
     map1: Annotated[Path, typer.Argument(show_default=False)],
     map2: Annotated[Path, typer.Argument(show_default=False)],
     pixel_spacing_angstroms: Annotated[Optional[float], typer.Option('--pixel-spacing-angstroms', show_default=False, help="Pixel spacing in Å/px, taken from header if not set")] = None,
+    plot: Annotated[bool, typer.Option('--plot')] = True,
     plot_with_matplotlib: Annotated[bool, typer.Option('--plot-with-matplotlib')] = False,
-    fsc_treshold: Annotated[float, typer.Option('--fsc-treshold', show_default=False, help="FSC treshold")] = 0.143
+    fsc_threshold: Annotated[float, typer.Option('--fsc-treshold', show_default=False, help="FSC treshold")] = 0.143,
+    #mask: Annotated[]
 ):
     with mrcfile.open(map1) as f:
         map1_tensor = torch.tensor(f.data)
@@ -25,32 +27,31 @@ def ttfsc_cli(
         map2_tensor = torch.tensor(f.data)
     
     
-    bin_centers = torch.fft.rfftfreq(map1_tensor.shape[0])
-    resolution_angstrom = (1 / (bin_centers)) * pixel_spacing_angstroms
+    frequency_pixels = torch.fft.rfftfreq(map1_tensor.shape[0])
+    resolution_angstroms = (1 / frequency_pixels) * pixel_spacing_angstroms
     fsc_values = fsc(map1_tensor, map2_tensor)
 
-    estimated_resolution_angstrom = resolution_angstrom[(fsc_values < fsc_treshold).nonzero()[0]-1]
-    rprint(f"Estimated resolution using {fsc_treshold} criterion: {estimated_resolution_angstrom[0]:.2f} Å")
+    estimated_resolution_frequency_pixel = float(frequency_pixels[(fsc_values < fsc_threshold).nonzero()[0]-1])
+    estimated_resolution_angstrom = float(resolution_angstroms[(fsc_values < fsc_threshold).nonzero()[0]-1])
+    rprint(f"Estimated resolution using {fsc_threshold} criterion: {estimated_resolution_angstrom:.2f} Å")
 
-    if plot_with_matplotlib:
-        from matplotlib import pyplot as plt
-        plt.plot(resolution_angstrom, fsc_values)
-        plt.xlabel('Resolution (Å)')
-        plt.xscale('log')
-        plt.xlim(resolution_angstrom[1], resolution_angstrom[-2])
-
-        plt.show()
-        typer.Exit()
+    if plot:
+        from .plotting import plot_matplotlib, plot_plottile
+        if plot_with_matplotlib:
+            plot_matplotlib(
+                fsc_values=fsc_values,
+                resolution_angstroms=resolution_angstroms,
+                estimated_resolution_angstrom=estimated_resolution_angstrom,
+                fsc_threshold=fsc_threshold
+            )
+        else:
+            plot_plottile(
+                fsc_values=fsc_values,
+                frequency_pixels=frequency_pixels,
+                pixel_spacing_angstroms=pixel_spacing_angstroms,
+                estimated_resolution_frequency_pixel=estimated_resolution_frequency_pixel,
+                fsc_threshold=fsc_threshold
+            )
+        
     
-    import plotille
-
-    fig = plotille.Figure()
-    fig.width = 60
-    fig.height = 20
-    fig.set_x_limits(float(bin_centers[1]), float(bin_centers[-1]))
-    fig.set_y_limits(0, 1)
-    def resolution_callback(x,_):
-        return '{:.2f}'.format((1 / x) * pixel_spacing_angstroms)
-    fig.x_ticks_fkt = resolution_callback
-    fig.plot(bin_centers[1:].numpy(), fsc_values[1:].numpy(),label='FSC')
-    print(fig.show(legend=True))
+    
