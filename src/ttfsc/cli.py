@@ -26,7 +26,7 @@ def ttfsc_cli(
     
     
     bin_centers = torch.fft.rfftfreq(map1_tensor.shape[0])
-    resolution_angstrom = 1 / (bin_centers * pixel_spacing_angstroms)
+    resolution_angstrom = (1 / (bin_centers)) * pixel_spacing_angstroms
     fsc_values = fsc(map1_tensor, map2_tensor)
 
     estimated_resolution_angstrom = resolution_angstrom[(fsc_values < fsc_treshold).nonzero()[0]-1]
@@ -50,7 +50,7 @@ def ttfsc_cli(
     fig.set_x_limits(float(bin_centers[1]), float(bin_centers[-1]))
     fig.set_y_limits(0, 1)
     def resolution_callback(x,_):
-        return '{:.2f}'.format(1 / (x * pixel_spacing_angstroms))
+        return '{:.2f}'.format((1 / x) * pixel_spacing_angstroms)
     fig.x_ticks_fkt = resolution_callback
     fig.plot(bin_centers[1:].numpy(), fsc_values[1:].numpy(),label='FSC')
     print(fig.show(legend=True))
