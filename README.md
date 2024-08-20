@@ -8,10 +8,11 @@
 
 Use Fourier shell correlation to estimate the resolution of cryo-EM images and volumes
 
-Usage:
+# Usage:
 
 ```
 $ ttfsc map1.mrc map2.mrc
+Estimated resolution using 0.143 criterion: 2.36 Å
    (Y)     ^
          1 |
 0.95000000 | ⠀⠀⠀⠀⠈⠒⠢⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀

@@ -5,7 +5,7 @@ import mrcfile
 import typer
 import torch
 from torch_fourier_shell_correlation import fsc
-
+from rich import print as rprint
 
 cli = typer.Typer(name='ttctf', no_args_is_help=True, add_completion=False)
 
@@ -14,7 +14,8 @@ def ttfsc_cli(
     map1: Annotated[Path, typer.Argument(show_default=False)],
     map2: Annotated[Path, typer.Argument(show_default=False)],
     pixel_spacing_angstroms: Annotated[Optional[float], typer.Option('--pixel-spacing-angstroms', show_default=False, help="Pixel spacing in Å/px, taken from header if not set")] = None,
-    plot_with_matplotlib: Annotated[bool, typer.Option('--plot-with-matplotlib')] = False
+    plot_with_matplotlib: Annotated[bool, typer.Option('--plot-with-matplotlib')] = False,
+    fsc_treshold: Annotated[float, typer.Option('--fsc-treshold', show_default=False, help="FSC treshold")] = 0.143
 ):
     with mrcfile.open(map1) as f:
         map1_tensor = torch.tensor(f.data)
@@ -27,6 +28,9 @@ def ttfsc_cli(
     bin_centers = torch.fft.rfftfreq(map1_tensor.shape[0])
     resolution_angstrom = 1 / (bin_centers * pixel_spacing_angstroms)
     fsc_values = fsc(map1_tensor, map2_tensor)
+
+    estimated_resolution_angstrom = resolution_angstrom[(fsc_values < fsc_treshold).nonzero()[0]-1]
+    rprint(f"Estimated resolution using {fsc_treshold} criterion: {estimated_resolution_angstrom[0]:.2f} Å")
 
     if plot_with_matplotlib:
         from matplotlib import pyplot as plt
