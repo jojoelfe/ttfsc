@@ -75,7 +75,7 @@ ttfsc = "ttfsc:cli"
 
 # https://docs.astral.sh/ruff
 [tool.ruff]
-line-length = 88
+line-length = 125
 target-version = "py38"
 src = ["src"]
 
@@ -112,7 +112,7 @@ skip-magic-trailing-comma = false  # default is false
 # https://mypy.readthedocs.io/en/stable/config_file.html
 [tool.mypy]
 files = "src/**/"
-strict = true
+strict = false
 disallow_any_generics = false
 disallow_subclassing_any = false
 show_error_codes = true

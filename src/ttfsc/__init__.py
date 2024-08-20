@@ -1,4 +1,4 @@
-"""Use Fourier shell correlation to estimate the resolution of cryo-EM images and volumes"""
+"""Use Fourier shell correlation to estimate the resolution of cryo-EM images and volumes."""
 
 from importlib.metadata import PackageNotFoundError, version
 
@@ -9,4 +9,6 @@ except PackageNotFoundError:
 __author__ = "Johannes Elferich"
 __email__ = "jojotux123@hotmail.com"
 
-from .cli import cli
+from ._cli import cli
+
+__all__ = ["cli"]
