@@ -1,0 +1,18 @@
+# Do not edit - changes here will be overwritten by Copier
+_commit: v1
+_src_path: gh:pydev-guide/pyrepo-copier
+author_email: jojotux123@hotmail.com
+author_name: Johannes Elferich
+git_versioning: true
+github_username: jojoelfe/ttfsc
+mode: customize
+module_name: ttfsc
+project_license: BSD-3-Clause
+project_name: ttfsc
+project_short_description: Use Fourier shell correlation to estimate the resolution
+    of cryo-EM images and volumes
+test_pre_release: true
+use_mypy: true
+use_pre_commit: true
+use_ruff: true
+
