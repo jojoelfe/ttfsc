@@ -6,6 +6,7 @@ import torch
 def plot_matplotlib(
     fsc_values_unmasked: torch.Tensor,
     fsc_values_masked: Optional[torch.Tensor],
+    fsc_values_corrected: Optional[torch.Tensor],
     resolution_angstroms: torch.Tensor,
     estimated_resolution_angstrom: float,
     fsc_threshold: float,
@@ -16,6 +17,8 @@ def plot_matplotlib(
     plt.plot(resolution_angstroms, fsc_values_unmasked, label="FSC (unmasked)")
     if fsc_values_masked is not None:
         plt.plot(resolution_angstroms, fsc_values_masked, label="FSC (masked)")
+    if fsc_values_corrected is not None:
+        plt.plot(resolution_angstroms, fsc_values_corrected, label="FSC (corrected)")
 
     plt.xlabel("Resolution (Å)")
     plt.ylabel("Correlation")
