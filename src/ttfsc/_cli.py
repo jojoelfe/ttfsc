@@ -26,16 +26,23 @@ def ttfsc_cli(
             "--pixel-spacing-angstroms",
             show_default=False,
             help="Pixel spacing in Å/px, taken from header if not set",
-            rich_help_panel="Input options",
+            rich_help_panel="General options",
         ),
     ] = None,
     fsc_threshold: Annotated[
-        float, typer.Option("--fsc-threshold", help="FSC threshold", rich_help_panel="Input options")
+        float, typer.Option("--fsc-threshold", help="FSC threshold", rich_help_panel="General options")
     ] = 0.143,
+    save_starfile: Annotated[
+        Optional[Path],
+        typer.Option("--save-starfile", help="Save FSC curves as a starfile", rich_help_panel="General options"),
+    ] = None,
     plot: Annotated[bool, typer.Option("--plot", rich_help_panel="Plotting options")] = True,
     plot_with_matplotlib: Annotated[
         bool, typer.Option("--plot-with-matplotlib", rich_help_panel="Plotting options")
     ] = False,
+    plot_matplotlib_style: Annotated[
+        str, typer.Option("--plot-matplotlib-style", rich_help_panel="Plotting options")
+    ] = "default",
     mask: Annotated[Masking, typer.Option("--mask", rich_help_panel="Masking options")] = Masking.none,
     mask_radius: Annotated[float, typer.Option("--mask-radius", rich_help_panel="Masking options")] = 100.0,
     mask_soft_edge_width: Annotated[int, typer.Option("--mask-soft-edge-width", rich_help_panel="Masking options")] = 10,
@@ -43,8 +50,11 @@ def ttfsc_cli(
         bool, typer.Option("--correct-for-masking", rich_help_panel="Masking correction options")
     ] = True,
     correct_from_resolution: Annotated[
-        float, typer.Option("--correct-from_resolution", rich_help_panel="Masking correction options")
+        Optional[float], typer.Option("--correct-from_resolution", rich_help_panel="Masking correction options")
     ] = 10.0,
+    correct_from_fraction_of_estimated_resolution: Annotated[
+        float, typer.Option("--correct-from-fraction-of-estimated-resolution", rich_help_panel="Masking correction options")
+    ] = 0.25,
 ) -> None:
     with mrcfile.open(map1) as f:
         map1_tensor = torch.tensor(f.data)
@@ -93,7 +103,12 @@ def ttfsc_cli(
                 norm=True,
                 device=map1_tensor_randomized.device,
             )
-            to_correct = frequency_grid > (1 / correct_from_resolution) / pixel_spacing_angstroms
+            if correct_from_resolution is not None:
+                to_correct = frequency_grid > (1 / correct_from_resolution) / pixel_spacing_angstroms
+            else:
+                to_correct = (
+                    frequency_grid > correct_from_fraction_of_estimated_resolution * estimated_resolution_frequency_pixel
+                )
             # Rotate phases at frequencies higher than 0.25
             random_phases1 = torch.rand(frequency_grid[to_correct].shape) * 2 * torch.pi
             random_phases1 = torch.complex(torch.cos(random_phases1), torch.sin(random_phases1))
@@ -113,8 +128,12 @@ def ttfsc_cli(
         map2_tensor = map2_tensor * mask_tensor
         fsc_values_masked = fsc(map1_tensor, map2_tensor)
         if correct_for_masking:
-            to_correct = frequency_pixels > (1 / correct_from_resolution) / pixel_spacing_angstroms
-            print(to_correct)
+            if correct_from_resolution is None:
+                to_correct = (
+                    frequency_pixels > correct_from_fraction_of_estimated_resolution * estimated_resolution_frequency_pixel
+                )
+            else:
+                to_correct = frequency_pixels > (1 / correct_from_resolution) / pixel_spacing_angstroms
             fsc_values_corrected = fsc_values_masked.clone()
             fsc_values_corrected[to_correct] = (
                 fsc_values_corrected[to_correct] - fsc_values_masked_randomized[to_correct]
@@ -136,6 +155,7 @@ def ttfsc_cli(
                 resolution_angstroms=resolution_angstroms,
                 estimated_resolution_angstrom=estimated_resolution_angstrom,
                 fsc_threshold=fsc_threshold,
+                plot_matplotlib_style=plot_matplotlib_style,
             )
         else:
             plot_plottile(

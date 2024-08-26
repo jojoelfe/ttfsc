@@ -10,9 +10,11 @@ def plot_matplotlib(
     resolution_angstroms: torch.Tensor,
     estimated_resolution_angstrom: float,
     fsc_threshold: float,
+    plot_matplotlib_style: str,
 ) -> None:
     from matplotlib import pyplot as plt
 
+    plt.style.use(plot_matplotlib_style)
     plt.hlines(0, resolution_angstroms[1], resolution_angstroms[-2], "black")
     plt.plot(resolution_angstroms, fsc_values_unmasked, label="FSC (unmasked)")
     if fsc_values_masked is not None:
