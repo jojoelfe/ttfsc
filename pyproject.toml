@@ -42,7 +42,9 @@ dependencies = [
     "matplotlib",
     "mrcfile",
     "plotille",
-    "rich"
+    "rich",
+    "starfile",
+    "pydantic>=2.0"
 ]
 
 # https://peps.python.org/pep-0621/#dependencies-optional-dependencies

@@ -20,7 +20,7 @@ def calculate_noise_injected_fsc(
     estimated_resolution_frequency_pixel: float,
     correct_from_resolution: Optional[float] = None,
     correct_from_fraction_of_estimated_resolution: float = 0.5,
-):
+) -> tuple[float, float, float, torch.tensor, torch.tensor]:
     from torch_grid_utils import fftfreq_grid
 
     map1_tensor_randomized = torch.fft.rfftn(map1_tensor)
@@ -75,6 +75,7 @@ def calculate_noise_injected_fsc(
         estimated_resolution_frequency_pixel,
         correct_from_resolution,
         fsc_values_corrected,
+        fsc_values_masked_randomized,
     )
 
 
@@ -106,7 +107,7 @@ def calculate_masked_fsc(
         mask_tensor[inside_sphere] = 1
 
         # if requested, a soft edge is added to the mask
-        mask_tensor = add_soft_edge(mask_tensor, mask_soft_edge_width_pixels)
+        mask_tensor = torch.tensor(add_soft_edge(mask_tensor, mask_soft_edge_width_pixels))
 
         map1_tensor_masked = map1_tensor * mask_tensor
         map2_tensor_masked = map2_tensor * mask_tensor

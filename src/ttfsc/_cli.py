@@ -97,6 +97,7 @@ def ttfsc_cli(
                 estimated_resolution_frequency_pixel,
                 correction_from_resolution_angstrom,
                 fsc_values_corrected,
+                fsc_values_randomized,
             ) = calculate_noise_injected_fsc(
                 map1_tensor,
                 map2_tensor,
@@ -113,6 +114,45 @@ def ttfsc_cli(
                 f"criterion with correction after {correction_from_resolution_angstrom:.2f} Å: "
                 f"{estimated_resolution_angstrom:.2f} Å"
             )
+    if save_starfile:
+        import pandas as pd
+        import starfile
+        from numpy import nan
+
+        from ._starfile_schema import RelionDataGeneral, RelionFSCData
+
+        data_general = RelionDataGeneral(
+            rlnFinalResolution=estimated_resolution_angstrom,
+            rlnUnfilteredMapHalf1=map1.name,
+            rlnUnfilteredMapHalf2=map2.name,
+        )
+        if mask != Masking.none:
+            data_general.rlnParticleBoxFractionSolventMask = mask_tensor.sum().item() / mask_tensor.numel()
+        if correct_for_masking:
+            data_general.rlnRandomiseFrom = correction_from_resolution_angstrom
+
+        fsc_data = []
+        for i, (f, r) in enumerate(zip(fsc_values_unmasked, resolution_angstroms)):
+            fsc_data.append(
+                RelionFSCData(
+                    rlnSpectralIndex=i,
+                    rlnResolution=r,
+                    rlnAngstromResolution=r,
+                    rlnFourierShellCorrelationCorrected=fsc_values_corrected[i] if correct_for_masking else nan,
+                    rlnFourierShellCorrelationUnmaskedMaps=f,
+                    rlnFourierShellCorrelationMaskedMaps=fsc_values_masked[i] if fsc_values_masked is not None else nan,
+                    rlnCorrectedFourierShellCorrelationPhaseRandomizedMaskedMaps=fsc_values_randomized[i]
+                    if correct_for_masking
+                    else nan,
+                    rlnFourierShellCorrelationParticleMaskFraction=1
+                    - ((1 - f) * data_general.rlnParticleBoxFractionSolventMask)
+                    if mask != Masking.none
+                    else nan,
+                )
+            )
+        starfile.write(
+            {"general": data_general.__dict__, "fsc": pd.DataFrame([f.__dict__ for f in fsc_data])}, save_starfile
+        )
 
     if plot:
         from ._plotting import plot_matplotlib, plot_plottile
