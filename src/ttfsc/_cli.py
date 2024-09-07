@@ -144,8 +144,9 @@ def ttfsc_cli(
                     rlnCorrectedFourierShellCorrelationPhaseRandomizedMaskedMaps=fsc_values_randomized[i]
                     if correct_for_masking
                     else nan,
-                    rlnFourierShellCorrelationParticleMaskFraction=1
-                    - ((1 - f) * data_general.rlnParticleBoxFractionSolventMask)
+                    rlnFourierShellCorrelationParticleMaskFraction=f
+                    / data_general.rlnParticleBoxFractionSolventMask
+                    / (1.0 + (1.0 / data_general.rlnParticleBoxFractionSolventMask - 1.0) * f.abs())
                     if mask != Masking.none
                     else nan,
                 )
