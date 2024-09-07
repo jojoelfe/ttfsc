@@ -40,6 +40,7 @@ dependencies = [
     "torch-fourier-shell-correlation",
     "ttmask",
     "matplotlib",
+    "numpy<2.0",
     "mrcfile",
     "plotille",
     "rich",
@@ -51,7 +52,7 @@ dependencies = [
 # "extras" (e.g. for `pip install .[test]`)
 [project.optional-dependencies]
 # add dependencies used for testing here
-test = ["pytest", "pytest-cov"]
+test = ["pytest", "pytest-cov", "pooch"]
 # add anything else you like to have in your dev environment here
 dev = [
     "ipython",

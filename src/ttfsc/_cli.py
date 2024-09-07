@@ -74,6 +74,7 @@ def ttfsc_cli(
     rprint(f"Estimated resolution using {fsc_threshold} criterion in unmasked map: {estimated_resolution_angstrom:.2f} Å")
 
     fsc_values_masked = None
+    fsc_values_corrected = None
     if mask != Masking.none:
         from ._masking import calculate_masked_fsc
 
@@ -138,7 +139,7 @@ def ttfsc_cli(
                     rlnSpectralIndex=i,
                     rlnResolution=r,
                     rlnAngstromResolution=r,
-                    rlnFourierShellCorrelationCorrected=fsc_values_corrected[i] if correct_for_masking else nan,
+                    rlnFourierShellCorrelationCorrected=fsc_values_corrected[i] if fsc_values_corrected is not None else nan,
                     rlnFourierShellCorrelationUnmaskedMaps=f,
                     rlnFourierShellCorrelationMaskedMaps=fsc_values_masked[i] if fsc_values_masked is not None else nan,
                     rlnCorrectedFourierShellCorrelationPhaseRandomizedMaskedMaps=fsc_values_randomized[i]
