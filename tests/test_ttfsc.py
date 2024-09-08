@@ -26,8 +26,16 @@ def halfmap2():
 runner = CliRunner()
 
 
-def test_app(halfmap1, halfmap2):
+def test_app_nomask(halfmap1, halfmap2):
     result = runner.invoke(cli, [halfmap1, halfmap2])
     print(result.output)
     assert result.exit_code == 0
     assert "Estimated resolution using 0.143 criterion in unmasked map: 3.63 Å" in result.output
+
+
+def test_app_spherical_mask(halfmap1, halfmap2):
+    result = runner.invoke(cli, [halfmap1, halfmap2, "--mask", "sphere", "--mask-radius-angstroms", "50"])
+    print(result.output)
+    assert result.exit_code == 0
+    assert "Estimated resolution using 0.143 criterion in masked map: 3.26 Å" in result.output
+    assert "Estimated resolution using 0.143 criterion with correction after 6.53 Å: 3.26 Å" in result.output
