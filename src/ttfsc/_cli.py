@@ -38,6 +38,12 @@ def ttfsc_cli(
         str, typer.Option("--plot-matplotlib-style", rich_help_panel="Plotting options")
     ] = "default",
     mask: Annotated[Masking, typer.Option("--mask", rich_help_panel="Masking options")] = Masking.none,
+    mask_file: Annotated[
+        Optional[Path],
+        typer.Option(
+            "--mask-file", help="Path to custom mask file (required when mask=custom)", rich_help_panel="Masking options"
+        ),
+    ] = None,
     mask_radius_angstroms: Annotated[
         float, typer.Option("--mask-radius-angstroms", rich_help_panel="Masking options")
     ] = 100.0,
@@ -54,12 +60,17 @@ def ttfsc_cli(
         float, typer.Option("--correct-from-fraction-of-estimated-resolution", rich_help_panel="Masking correction options")
     ] = 0.5,
 ) -> None:
+    if mask == Masking.custom and mask_file is None:
+        raise typer.BadParameter("--mask-file is required when using --mask=custom")
+    if mask == Masking.sphere and mask_file is not None:
+        rprint("[yellow]Warning: --mask-file is ignored when using --mask=sphere[/yellow]")
     result = ttfsc(
         map1=map1,
         map2=map2,
         pixel_spacing_angstroms=pixel_spacing_angstroms,
         fsc_threshold=fsc_threshold,
         mask=mask,
+        mask_filename=mask_file,
         mask_radius_angstroms=mask_radius_angstroms,
         mask_soft_edge_width_pixels=mask_soft_edge_width_pixels,
         correct_for_masking=correct_for_masking,

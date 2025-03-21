@@ -10,6 +10,7 @@ from torch import Tensor
 class Masking(str, Enum):
     none = "none"
     sphere = "sphere"
+    custom = "custom"
 
 
 class TTFSCResult(BaseModel):
